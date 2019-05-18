@@ -32,6 +32,7 @@ func (sm *SafeMap) Value(url string) bool {
 // Crawl uses fetcher to recursively crawl
 // pages starting with url, to a maximum of depth.
 func Crawl(url string, depth int, fetcher Fetcher, umap *SafeMap) {
+	defer wg.Done()
 	// TODO: Fetch URLs in parallel.
 	// TODO: Don't fetch the same URL twice.
 	// This implementation doesn't do either:
@@ -52,15 +53,18 @@ func Crawl(url string, depth int, fetcher Fetcher, umap *SafeMap) {
 	fmt.Printf("found: %s %q\n", url, body)
 
 	for _, u := range urls {
-		Crawl(u, depth-1, fetcher, umap)
+		wg.Add(1)
+		go Crawl(u, depth-1, fetcher, umap)
 	}
 	return
 }
 
+var wg sync.WaitGroup
+
 func main() {
-	wg := sync.WaitGroup{}
+	wg.Add(1)
 	urlMap := SafeMap{mp: make(map[string]bool)}
-	Crawl("https://golang.org/", 4, fetcher, &urlMap)
+	go Crawl("https://golang.org/", 4, fetcher, &urlMap)
 	wg.Wait()
 }
 
