@@ -31,7 +31,8 @@ func (sm *SafeMap) Value(url string) bool {
 
 // Crawl uses fetcher to recursively crawl
 // pages starting with url, to a maximum of depth.
-func Crawl(url string, depth int, fetcher Fetcher, umap *SafeMap) {
+func Crawl(url string, depth int, fetcher Fetcher, umap SafeMap) {
+	fmt.Printf("%T,%v\n", umap, umap)
 	defer wg.Done()
 	// TODO: Fetch URLs in parallel.
 	// TODO: Don't fetch the same URL twice.
@@ -64,7 +65,7 @@ var wg sync.WaitGroup
 func main() {
 	wg.Add(1)
 	urlMap := SafeMap{mp: make(map[string]bool)}
-	go Crawl("https://golang.org/", 4, fetcher, &urlMap)
+	go Crawl("https://golang.org/", 4, fetcher, urlMap)
 	wg.Wait()
 }
 
